@@ -1,0 +1,93 @@
+/*    
+    CSS书写顺序
+
+    1. 位置属性(position, top, right, z-index, display, float等)
+    2. 大小(width, height, padding, margin)
+    3. 文字系列(font, line-height, letter-spacing, color- text-align等)
+    4. 背景(background, border等)
+    5. 其他(animation, transition等)
+*/
+#my-slider {
+    position: relative;
+    width: 790px;
+    height: 340px;
+}
+.slider-list ul {
+    list-style-type: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.slider-list__item, 
+.slider-list__item--selected {
+    position: absolute;
+    transition: opacity 1s;
+    opacity: 0;
+    text-align: center;
+}
+.slider-list__item--selected {
+    transition: opacity 1s;
+    opacity: 1;
+}
+.slider-list__control {
+    position: relative; /*相对定位：相对自身正常文档流定位，没有脱离文档流，元素原本所占的位置会保留。*/
+    display: table;  /*水平居中*/
+    background-color: rgba(255, 255, 255, 0.5);
+    bottom: 30px;
+    padding: 5px;
+    border-radius: 12px;
+    margin: auto;
+}
+.slider-list__control-buttons--selected, 
+.slider-list__control-buttons {
+    display: inline-block;
+    margin: 0 5px;
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.slider-list__control-buttons--selected {
+    background-color: red;
+}
+.slider-list__previous,
+.slider-list__next {
+    position: absolute;
+    top: 50%;
+    margin-top: -25px;
+    overflow: hidden;
+    /*transform: translateY(-50%);*/
+    width: 30px;
+    height: 50px;
+    text-align: center;
+    font-size: 24px;
+    line-height: 50px;
+    color: white;
+    border: none;
+    /*background-color: transparent;*/
+    background-color: rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 1s;
+    cursor: pointer;
+}
+.slider-list__next {
+    right: 0;
+}
+.slider-list__previous {
+    left: 0;
+}
+#my-slider:hover .slider-list__next {
+    opacity: 1;
+}
+#my-slider:hover .slider-list__previous {
+    opacity: 1;
+}
+.slider-list__next:after {
+    content: '>';
+}
+.slider-list__previous:after {
+    content: '<';
+}
