@@ -1,1 +1,1 @@
-import './css/common'
+import Recorder from './js/recorder'
