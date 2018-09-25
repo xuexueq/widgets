@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const CleanWebpackPlugin = require('clean-webpack-plugin');
+// const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
 const proxyPort = 8081;
 
 module.exports = {
@@ -26,11 +28,18 @@ module.exports = {
         // }
         }]
     },
+    resolve: {
+        extensions: ["*",".js",".css",".json"],
+        alias: {
+            jquery: 'jquery/dist/jquery.min.js',
+            '@': path.join(__dirname, './src')
+        }
+    },
     plugins: [
         new HtmlWebpackPlugin({
             template: __dirname + '/src/index.html'
         }),
-        new ExtractTextPlugin('common.css')
+        new ExtractTextPlugin('common.css'),
     ],
     devServer: {
         contentBase: './dist'

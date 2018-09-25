@@ -5,6 +5,40 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        html, body,#main {
+            width: 100%;
+            height: 100%;
+        }
+        body, h2 {
+            margin: 0;
+        }
+        #main {
+            position: relative;
+            min-width: 300px;
+            max-width: 400px;
+            overflow: hidden;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 60px;
+            color:#666;
+        }
+        #hint{
+            font-size: .8em;
+            color:#e00;
+        }
+        #handlock {
+            position: relative;
+            width: 100%;
+            height: 0; /*利用padding-bottom: 100%;构建一个响应式容器正方形。要在这个div容器中没有内容时条件下才行（内容高度为0），即使设置内容高度为0，当div中有内容依然会显示，在padding的空间内，标准盒子模型*/
+            padding-bottom: 100%;
+        }
+        input {
+            outline: none;
+        }
+    </style>
 </head>
 <body>
     <div id="main">
@@ -21,6 +55,5 @@
             </label>
         </div>
     </div>
-    <script src="./bundle.js"></script>
 </body>
 </html>

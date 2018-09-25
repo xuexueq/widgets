@@ -1,1 +1,5 @@
-import Recorder from './js/recorder'
+import Recorder from '@/js/recorder'
+
+export {
+    Recorder
+}
