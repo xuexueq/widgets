@@ -1,5 +1,11 @@
 import { defaultROptions } from '@/common/config';
-import { drawSolidCircle, drawHollowCircle, getCanvasPoint, distancePoint } from '@/common/utils'
+import { 
+    drawSolidCircle, 
+    drawHollowCircle, 
+    drawLine, 
+    getCanvasPoint, 
+    distancePoint
+} from '@/common/utils'
 
 export default class Recorder {
     constructor(options) {
@@ -88,10 +94,20 @@ export default class Recorder {
         }
         this.circles = circles;
     }
+    /**
+    *触点移动的过程中this.circles九个圆点会根据选中的圆点依次移除；
+    *每次开始touch的时候先清空画布，既保证了this.circles这时是九个完整的圆点可触；
+    *1. 画圆
+    *2. 画固定线条
+    *3. 画移动线条
+    */
     record() {
         let {
             circleCanvas,
+            moveCanvas,
             circleCtx,
+            moveCtx,
+            lineCtx
         } = this;
         let {
             bgColor,
@@ -101,9 +117,11 @@ export default class Recorder {
         } = this.options;
 
         // 使用箭头函数 使能获取到 Recorder 对象实例
+        let records = [];
         const handler = e => {
             let { clientX, clientY } = e.touches[0]; // clientX: 返回触点相对于可见视区(visual viewport)左边沿的的X坐标. 不包括任何滚动偏移.这个值会根据用户对可见视区的缩放行为而发生变化.
             let touchPoint = getCanvasPoint(circleCanvas, clientX, clientY);
+
             for(let i = 0, len = this.circles.length; i < len; i++) {
                 let point = this.circles[i];
                 let x0 = point.x;
@@ -113,7 +131,29 @@ export default class Recorder {
                     drawSolidCircle(circleCtx, bgColor, x0, y0, outerRadius); 
                     drawSolidCircle(circleCtx, focusColor, x0, y0, innerRadius);
                     drawHollowCircle(circleCtx, focusColor, x0, y0, outerRadius);
+
+                    // 画固定线条 由于circlesCtx在lineCtx的上层，所以固定线条从圆心为起点到半径那一部分的线段会被覆盖掉
+                    if(records.length) {
+                        let lineStartPoint = records[records.length - 1];
+                        let x1 = lineStartPoint.x;
+                        let y1 = lineStartPoint.y;
+                        drawLine(lineCtx, focusColor, x1, y1, x0, y0);
+                    }
+                    let circles = this.circles.splice(i, 1);
+                    records.push(circles[0]); // 记录手指触到的触点坐标，并删除该触点，表示此次touch不再触到该触点 splice删除掉的元素是在一个数组中
+                    break; // 不加会报错，
                 }
+            }
+
+            // 画移动线条
+            if(records.length) {
+                let moveLineStartPoint = records[records.length - 1];
+                let x1 = moveLineStartPoint.x;
+                let y1 = moveLineStartPoint.y;
+                let x2 = touchPoint.x;
+                let y2 = touchPoint.y;
+                moveCtx.clearRect(0, 0, moveCanvas.width, moveCanvas.height); // 每次画移动线条前先清空
+                drawLine(moveCtx, focusColor, x1, y1, x2, y2);
             }
         }
         circleCanvas.addEventListener('touchstart', () => {
@@ -121,5 +161,24 @@ export default class Recorder {
         })
         circleCanvas.addEventListener('touchstart', handler);
         circleCanvas.addEventListener('touchmove', handler);
+
+        // touchend时把本次的记录结果输出 考虑到要用这个结果后续来做验证更新等 即验证密码要用到手势记录的值，
+        // 因此将手势触点这一动作放入一个Promise中 并将记录的结果 resolve 出去
+        // 由于 touchend的时候才算本次触点结束，即Promise异步操作的结束取决于什么时候touchend 只需将touchend放入Promise执行器即可
+        // touchend时，将结果resolve出去等待后续操作处理本次结果，移除所有的监听事件是为了在没有处理该结果前不允许再次绘画
+        let promise = new Promise((resolve, reject) => {
+            
+            const done = () => {
+                if(!records.length) return;
+                moveCtx.clearRect(0, 0, moveCanvas.width, moveCanvas.height);
+                circleCanvas.removeEventListener('touchstart', handler);
+                circleCanvas.removeEventListener('touchmove', handler);
+                circleCanvas.removeEventListener('touchend', done); // touchend也要移除，否则会执行
+                // document.removeEventListener('touchend', done);
+                console.log(records);
+            }; // 函数表达式不提升 必须放在监听事件之前
+            circleCanvas.addEventListener('touchend', done);
+        });
+
     }
 }
