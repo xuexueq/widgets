@@ -8,6 +8,15 @@ import {
 } from '@/common/utils'
 
 export default class Recorder {
+    static get ERR_NOT_ENOUGH_POINTS() {
+        return 'not enough points';
+    }
+    static get ERR_NO_TASK() {
+        return 'no task';
+    }
+    static get ERR_USER_CANCELED() {
+        return 'user canceled';
+    }
     constructor(options) {
         this.options = {...defaultROptions, ...options};
         // this.options = Object.assign({}, defaultROptions, options);这两种方式都只能深拷贝第一层的数据。
@@ -94,27 +103,37 @@ export default class Recorder {
         }
         this.circles = circles;
     }
+
+    cancel() {
+        this.recordingTask && this.recordingTask.cancel();
+        // return Promise.resolve({err: new Error(Recorder.ERR_NO_TASK)});
+    }
     /**
-    *触点移动的过程中this.circles九个圆点会根据选中的圆点依次移除；
-    *每次开始touch的时候先清空画布，既保证了this.circles这时是九个完整的圆点可触；
-    *1. 画圆
-    *2. 画固定线条
-    *3. 画移动线条
+    * 这里用 async 表示该函数返回的是一个 Promise 对象
+    * 触点移动的过程中this.circles九个圆点会根据选中的圆点依次移除；
+    * 每次开始touch的时候先清空画布，既保证了this.circles这时是九个完整的圆点可触；
+    * 1. 画圆
+    * 2. 画固定线条
+    * 3. 画移动线条
     */
-    record() {
+    async record() {
+        this.cancel();
+
         let {
             circleCanvas,
             moveCanvas,
             circleCtx,
             moveCtx,
-            lineCtx
+            lineCtx,
+            options
         } = this;
         let {
             bgColor,
             focusColor,
             outerRadius,
-            innerRadius
-        } = this.options;
+            innerRadius,
+            minPoint
+        } = options; // options
 
         // 使用箭头函数 使能获取到 Recorder 对象实例
         let records = [];
@@ -166,19 +185,40 @@ export default class Recorder {
         // 因此将手势触点这一动作放入一个Promise中 并将记录的结果 resolve 出去
         // 由于 touchend的时候才算本次触点结束，即Promise异步操作的结束取决于什么时候touchend 只需将touchend放入Promise执行器即可
         // touchend时，将结果resolve出去等待后续操作处理本次结果，移除所有的监听事件是为了在没有处理该结果前不允许再次绘画
+        let recordingTask = {};
         let promise = new Promise((resolve, reject) => {
+            /**
+            * 取消手势记录行为，
+            * 之所以把 cancel 事件写在 Promise 内部，是因为需要拿到同一个监听事件 handler 和 done
+            * cancel 事件放在 done监听事件之前，函数表达式不会提升, done 中要保证移除改事件
+            * @return {Promise}
+            */
+            recordingTask.cancel = () => {
+                this.recordingTask = null; 
+                // 置为 null, 毕竟是 record 函数返回出去的函数，此时 cancel与 record形成一个闭包。防止内存泄漏！！！
+                circleCanvas.removeEventListener('touchstart', handler);
+                circleCanvas.removeEventListener('touchmove', handler);
+                document.removeEventListener('touchend', done);
+            };
             
             const done = () => {
                 if(!records.length) return;
                 moveCtx.clearRect(0, 0, moveCanvas.width, moveCanvas.height);
                 circleCanvas.removeEventListener('touchstart', handler);
                 circleCanvas.removeEventListener('touchmove', handler);
-                circleCanvas.removeEventListener('touchend', done); // touchend也要移除，否则会执行
-                // document.removeEventListener('touchend', done);
-                console.log(records);
-            }; // 函数表达式不提升 必须放在监听事件之前
+                // circleCanvas.removeEventListener('touchend', done); // touchend也要移除，否则会执行
+                document.removeEventListener('touchend', done);
+
+                let err = records.length < minPoint ? new Error(Recorder.ERR_NOT_ENOUGH_POINTS) : null;
+                resolve({
+                    err,
+                    records: (records.map(item => item.pos.join(''))).join('')
+                });
+                this.recordingTask = null; // 除非手动调用cancel，将不会返回该事件。闭包，防止内存泄漏。
+            };
             circleCanvas.addEventListener('touchend', done);
         });
-
+        this.recordingTask = recordingTask;
+        return promise;
     }
 }
