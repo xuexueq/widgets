@@ -22,7 +22,7 @@ export default class Locker extends Recorder{
             res.err = new Error(Locker.ERR_PASSWORD_MISMATCH);
         }
         checked.call(this, res);
-        this.check(); // 不断调用
+        this.check(password); // 不断调用 依然传入上次的密码参数
         // return Promise.resolve(res);
     }
     async update() {

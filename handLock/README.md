@@ -25,6 +25,9 @@
 * `clearPath()`: 清除上次绘制的图案，并初始化画布，以便调用 record()可直接进行绘制。
 * `cancel()`: 取消图案的绘制操作，后续无法在画布绘制。
 
+静态方法：
+* `ERR_NOT_ENOUGH_POINTS()`: 移动的点数不够
+
 2. Locker组件描述：
 
 **该组件如何使用**：
@@ -43,6 +46,9 @@ update: {beforeRepeat: function(){}, afterRepeat: function(){}} 更新密码的�
 
 * `update()`: 更新密码。结果由调用者控制，如何处理第一次绘制的结果，以及第二次绘制的结果。
 * `check`: 验证密码。结果由调用者控制。
+
+静态方法：
+* `ERR_PASSWORD_MISMATCH()`: 返回字符串 密码和上次密码不匹配
 
 ### 设计思路
 1. 为什么要设计三个canvas层
