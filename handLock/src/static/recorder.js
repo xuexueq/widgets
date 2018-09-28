@@ -1,3 +1,7 @@
+/**
+* 验证 Recorder 类
+*/
+
 import Recorder from '@/component/recorder'
 
 let recorder = new Recorder({
@@ -38,8 +42,11 @@ cancelEle.addEventListener('click', ()=> {
 * 当点击n(n>=2)次record按钮的时候（或者页面刚渲染完毕直接点击record按钮），绘制会出现一条从起始触点到终止触点的移动线段，并在控制台打印出not enough points 的错误。
 * 原因：连续调用两次record方法，会导致前一个record方法中注册的监听事件handler没有被移除（不点击record按钮，再次绘制没有这个bug，是因为touchend时删除了所有的监听事件），
 * 所以解决办法是：每次调用record()方法时，先调用cancel()方法，移除所有的监听事件
-
+*
 * 这里因为移除监听事件需要的是同一个回调函数，所以吧cancel函数放在return中了，注意处理闭包导致的内存占用问题
 * touchend 时，移除cancel的引用（这里想想为什么，移除后下次还能调用到cancel）
+*
+* TODO:
+* cancel 返回 Promise ，验证是用户点击的cancel还是手势在没有绘制的时候(连续点击record按钮)调用的cancel
 */
 

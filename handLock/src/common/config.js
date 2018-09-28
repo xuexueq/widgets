@@ -11,8 +11,13 @@ const defaultROptions = {
 }
 
 const defaultLOptions = {
-    update: {},
-    check: {}
+    update: {
+        beforeRepeat: function() {},
+        afterRepeat: function() {}
+    },
+    check: {
+        checked: function () {}
+    }
 }
 
 export {

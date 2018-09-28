@@ -37,7 +37,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: __dirname + '/src/recorder.html'
+            template: __dirname + '/src/index.html'
         }),
         new ExtractTextPlugin('common.css'),
     ],
